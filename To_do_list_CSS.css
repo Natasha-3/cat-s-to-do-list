@@ -1,9 +1,14 @@
+html {
+    height: 100%;
+}
 body{
     background: #ffe5ff;
+    height: 100%;
 }
 .list{
     background: thistle;
-    height: auto;
+    background-size: 100%;
+    min-height: 100%;
 }
 .list__header{
     text-align: center;
