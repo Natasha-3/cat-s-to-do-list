@@ -1,14 +1,19 @@
-
-function Affairs(options) {
+//Нашу общую функцию нужно записать с маленькой буквы и вызывать без new потому что с new у нас либо конструктор, либо класс
+//это не конструктор, потому что мы вызываем ее единожды (конструктор use для многократных вызовов с разными аргументами);
+//это не класс, потому что мы не создаем публичные методы типа this.toggle = toggle;
+function affairs(options) {
   const elem = options.elem;
   const input = document.getElementById('input');
-  const placeholder = document.querySelector('.list__main__placeholder');
-  const paws = document.querySelector('.list__main__add');
-  const catWithHeart = document.querySelector('.list__main__checkAll');
+  const paws = document.querySelector('.main__add');
+  const catWithHeart = document.querySelector('.main__checkAll');
+  const itemsContainer = document.querySelector('.itemsContainer');
+  const footerContainer = document.querySelector('.footerContainer');
+  const noteWithNumberOfUndoneDoings =
+      document.querySelector('.footerContainer__content');
 
   //Для функции addToList
   let itemsArray = [];
-  let itemsContainer, item, number, checkbox, label, removeButton;
+  let  item, number, checkbox, label, removeButton;
 
   // Для функции catchClickOnButton (нужна для функции addFooter)
   let pressedButton;
@@ -22,21 +27,24 @@ function Affairs(options) {
   //Для onchange
   let numberOfUndoneDoings;
 
-  //Для addDoings
-  let collectionOfDoneDoings = [];
+  //Для addToDoneDoings
+  let doneDoings = [];
+
+  //Для функции createElement
+  let el;
 
   //Для функции addFooter
-  let footerContainer, noteWithNumberOfUndoneDoings, AllButton, ActiveButton,
-      CompletedButton, ClearCompletedButton;
+  let AllButton, ActiveButton, CompletedButton, ClearCompletedButton;
   let ButtonsOfFooter = [];
 
   // Для функции performButtonAction
   let listButton;
 
   elem.onclick = function(event) {
-    if (event.target == placeholder || event.target == input) {
+    if (event.target == input) {
       input.focus();
-    } else if (event.target == paws && input.value !=='') {
+    }
+    else if (event.target == paws && input.value !== '') {
       addToList();
       addFooter();
     } else if (event.target == catWithHeart) {
@@ -49,59 +57,47 @@ function Affairs(options) {
   };
 
   elem.onkeyup = function(event) {
-    if (event.keyCode == 13 && input.value !='') {
+    if (event.keyCode == 13 && input.value != '') {
       addToList();
       addFooter();
     }
   };
 
-  input.onfocus = function() {
-    placeholder.style.display = 'none';
-  };
-
-  //при снятии фокуса, если в строке ничего не введено, будет Кошачьи дела
-  input.onblur = function() {
-    if(input.value =='') {
-      placeholder.style.display = 'block';
-    }
-  };
-
   // Эта функция отвечает за чекбоксы
   elem.onchange = function(event) {
-
     //если есть галочка - убираем галочку
     if (event.target.hasAttribute('data-check')) {
 
       event.target.removeAttribute('data-check');
-      removeDoingsFromCollectionOfDoneDoings(event.target.parentElement);
+      removeFromDoneDoings(event.target.parentElement);
       calculateNumberOfUndoneDoings();
-      changeInner(noteWithNumberOfUndoneDoings,
-          'В планах у кота ' + numberOfUndoneDoings);
-      updateCurrentList(pressedButton.innerHTML);
+      noteWithNumberOfUndoneDoings.innerHTML =
+          'В планах у кота ' + numberOfUndoneDoings;
+      updateCurrentList(pressedButton.getAttribute('data-name'));
 
     //поставили галочку
     } else if (event.target.hasAttribute('type') &&
         event.target.getAttribute('type') == 'checkbox') {
 
       event.target.setAttribute('data-check', 'checked');
-      addDoingsToCollectionOfDoneDoings(event.target.parentElement);
+      addToDoneDoings(event.target.parentElement);
       calculateNumberOfUndoneDoings();
-      changeInner(noteWithNumberOfUndoneDoings,
-          'В планах у кота ' + numberOfUndoneDoings);
-      updateCurrentList(pressedButton.innerHTML);
+      noteWithNumberOfUndoneDoings.innerHTML =
+          'В планах у кота ' + numberOfUndoneDoings;
+      updateCurrentList(pressedButton.getAttribute('data-name'));
     }
   };
 
   // Функции добавления и удаления дел в/из коллекцию/и сделанных дел
-  function addDoingsToCollectionOfDoneDoings(item) {
-    collectionOfDoneDoings.push(item);
-    return collectionOfDoneDoings;
+  function addToDoneDoings(item) {
+    doneDoings.push(item);
+    return doneDoings;
   }
 
-  function removeDoingsFromCollectionOfDoneDoings(item) {
-    let index = collectionOfDoneDoings.indexOf(item);
-    collectionOfDoneDoings.splice(index,1);
-    return collectionOfDoneDoings;
+  function removeFromDoneDoings(item) {
+    let index = doneDoings.indexOf(item);
+    doneDoings.splice(index,1);
+    return doneDoings;
   }
 
   // Функция обновляет список дел в зависимости от того, какая кнопка нажата
@@ -109,7 +105,7 @@ function Affairs(options) {
     if (!x) return;
     switch(x) {
       case 'All':
-        showAllList();
+        showAllList;
         break;
       case 'Active':
         showActiveList();
@@ -124,12 +120,13 @@ function Affairs(options) {
   // соответствии с кнопкой различные действия
   function catchClickOnButton(target) {
     // конпка удаления divа - правый крестик
-    if (target.closest('.list__main__itemsContainer__items__removeButtons')) {
-      RemoveFromList(event.target.closest
-      ('.list__main__itemsContainer__items__removeButtons').parentNode);
+    if (target.closest('.items__removeButtons')) {
+      removeFromList(
+          event.target.closest('.items__removeButtons').parentNode
+      );
     }
     // кнопки снизу в футере
-    if (target.closest('.list__main__footerContainer__Buttons')) {
+    if (target.closest('.footerContainer__Buttons')) {
       pressedButton = target;
       performButtonAction(pressedButton);
     }
@@ -138,25 +135,25 @@ function Affairs(options) {
   // Функция, выполняющая действия кнопок футера
   function performButtonAction(pressedButton) {
     if (!pressedButton) return;
-    if (pressedButton.innerHTML == 'All') {
+    if (pressedButton.getAttribute('data-name') == 'All') {
       listButton = pressedButton;
       buttonIllumination(pressedButton);
       showAllList();
       console.log(pressedButton.innerHTML);
     }
-    if (pressedButton.innerHTML == 'Active') {
+    if (pressedButton.getAttribute('data-name') == 'Active') {
       listButton = pressedButton;
       buttonIllumination(pressedButton);
       showActiveList();
       console.log(pressedButton.innerHTML);
     }
-    if (pressedButton.innerHTML == 'Completed') {
+    if (pressedButton.getAttribute('data-name') == 'Completed') {
       listButton = pressedButton;
       buttonIllumination(pressedButton);
       showCompletedList();
       console.log(pressedButton.innerHTML);
     }
-    if (pressedButton.innerHTML == 'Clear Completed') {
+    if (pressedButton.getAttribute('data-name') == 'ClearCompleted') {
       deleteCompletedDoings();
       console.log(pressedButton.innerHTML);
     }
@@ -164,21 +161,20 @@ function Affairs(options) {
 
   // Функции, создающие элемент, удаляющие элемент, задающие атрибут и
   // изменяющие иннер
-  function createElement(variable, tag ,addedClass, parent, inner) {
-    variable = document.createElement(tag);
-    variable.className = addedClass;
-    parent.appendChild(variable);
-    if (inner) {variable.innerHTML = inner;}
-    return variable;
+  function createElement(pars) {
+    el = document.createElement(pars.tag);
+    el.className = pars.className;
+    pars.parent.appendChild(el);
+    if (pars.inner) {
+      el.innerHTML = pars.inner;
+    }
+    return el;
   }
 
-  // Эта функция нужна для того, чтобы
-  // во-первых, упростить понимание работы функций, куда я ее включаю;
-  // во-вторых, для улучшения моей ориентации в коде.
-  // Поэтому она будет здесь присутствовать ^_^ мяу
-  function removeElement(el) {
-    el.remove();
-  }
+  // А тут была функция, которая мне очень нравилась, но нехороший Ярослав
+  // сказал, что эта функция нехорошая, и мне пришлось ее удалить. Вот.
+  // Я недовольна, поэтому на ее месте будет комментарий, полный недовольства.
+  // Р...
 
   function setAttributes(el,obj) {
     for (let key in obj) {
@@ -188,24 +184,23 @@ function Affairs(options) {
     }
   }
 
-  function changeInner(variable, inner) {
-    variable.innerHTML = inner;
-  }
-
   // Функция добавления пункта в лист заданий
   function addToList() {
-    if (!elem.querySelector('.list__main__itemsContainer')) {
-      itemsContainer = createElement(itemsContainer, 'div',
-          'list__main__itemsContainer', elem);
-    }
+    itemsContainer.classList.remove('hidden');
 
-    item = createElement(item, 'div', 'list__main__itemsContainer__items',
-        itemsContainer);
+    item = createElement({
+      tag: 'div',
+      className: 'items',
+      parent: itemsContainer,
+    });
     itemsArray.push(item);
     number = (itemsArray.indexOf(item)) + 1;
 
-    checkbox = createElement(checkbox, 'input',
-        'list__main__itemsContainer__items__checkboxes', item);
+    checkbox = createElement({
+      tag: 'input',
+      className: 'items__checkboxes',
+      parent: item,
+    });
     setAttributes(checkbox,{
       type: 'checkbox',
       name: 'doings',
@@ -213,52 +208,48 @@ function Affairs(options) {
       id: 'checkbox'+number
     });
 
-    label = createElement(label, 'label',
-        'list__main__itemsContainer__items__labels', item, input.value);
+    label = createElement({
+      tag: 'label',
+      className: 'items__labels',
+      parent: item,
+      inner: input.value
+    });
     setAttributes(label,{for: 'checkbox'+number});
 
-    removeButton = createElement(removeButton, 'button',
-        'list__main__itemsContainer__items__removeButtons', item, 'x');
+    removeButton = createElement({
+      tag: 'button',
+      className: 'items__removeButtons',
+      parent: item,
+      inner: 'x'
+    });
     input.value = '';
   }
 
-
-  function RemoveFromList(item){
-
+  function removeFromList(item){
     // стоит галочка
-    if (findSmthInArray(collectionOfDoneDoings,item)) {
+    if (doneDoings.indexOf(item) !== -1) {
 
-      removeDoingsFromCollectionOfDoneDoings(item);
+      removeFromDoneDoings(item);
       removeDoingsFromItemsArray(item);
-      removeElement(item);
+      item.remove();
       calculateNumberOfUndoneDoings();
-      changeInner(noteWithNumberOfUndoneDoings, 'В планах у кота '
-          + numberOfUndoneDoings);
+      noteWithNumberOfUndoneDoings.innerHTML =
+          'В планах у кота ' + numberOfUndoneDoings;
 
       //  галочки нет
     } else {
 
       removeDoingsFromItemsArray(item);
-      removeElement(item);
+      item.remove();
       calculateNumberOfUndoneDoings();
-      changeInner(noteWithNumberOfUndoneDoings, 'В планах у кота '
-          + numberOfUndoneDoings);
+      noteWithNumberOfUndoneDoings.innerHTML =
+          'В планах у кота ' + numberOfUndoneDoings;
     }
 
     if (itemsContainer.childNodes.length === 0) {
+      itemsContainer.classList.add('hidden');
       removeFooter();
     }
-  }
-
-  // Функция находит что-то искомое в массиве
-  function findSmthInArray(arr,smth) {
-    var i = arr.length;
-    while (i--) {
-      if (arr[i] == smth) {
-        return true;
-      }
-    }
-    return false;
   }
 
   function removeDoingsFromItemsArray(deletedItem) {
@@ -282,157 +273,129 @@ function Affairs(options) {
 
   // Функция подсчитывает число несделанных дел, отображающихся в футере
   function calculateNumberOfUndoneDoings() {
-    numberOfUndoneDoings = itemsArray.length - collectionOfDoneDoings.length;
+    numberOfUndoneDoings = itemsArray.length - doneDoings.length;
     return numberOfUndoneDoings;
   }
 
   //Функция создания футера (нижней части выпадающего списка)
   function addFooter() {
-
-    if (elem.contains(footerContainer)) {
+    if (!footerContainer.classList.contains('hidden')) {
       calculateNumberOfUndoneDoings();
-      noteWithNumberOfUndoneDoings.innerHTML = 'В планах у кота '
-          + numberOfUndoneDoings;
+      noteWithNumberOfUndoneDoings.innerHTML =
+          'В планах у кота ' + numberOfUndoneDoings;
       return;
     }
 
-    footerContainer = createElement(footerContainer, 'div',
-        'list__main__footerContainer', elem);
+    footerContainer.classList.remove('hidden');
     calculateNumberOfUndoneDoings();
-    noteWithNumberOfUndoneDoings = createElement(noteWithNumberOfUndoneDoings,
-        'p', 'list__main__footerContainer__content',
-        footerContainer, 'В планах у кота '+ numberOfUndoneDoings);
+    noteWithNumberOfUndoneDoings.innerHTML =
+        'В планах у кота ' + numberOfUndoneDoings;
 
-    AllButton = createElement(AllButton, 'button',
-        'list__main__footerContainer__Buttons', footerContainer, 'All');
+    AllButton = footerContainer.children[1];
     ButtonsOfFooter.push(AllButton);
-    addColorButtonSelection(AllButton);
     pressedButton = AllButton;
 
-    ActiveButton = createElement(ActiveButton, 'button',
-        'list__main__footerContainer__Buttons', footerContainer, 'Active');
+    ActiveButton = footerContainer.children[2];
     ButtonsOfFooter.push(ActiveButton);
 
-    CompletedButton = createElement(CompletedButton, 'button',
-        'list__main__footerContainer__Buttons', footerContainer, 'Completed');
+    CompletedButton = footerContainer.children[3];
     ButtonsOfFooter.push(CompletedButton);
 
-    ClearCompletedButton = createElement(ClearCompletedButton, 'button',
-        'list__main__footerContainer__Buttons', footerContainer,
-        'Clear Completed');
+    ClearCompletedButton = footerContainer.children[4];
     ButtonsOfFooter.push(ClearCompletedButton);
   }
 
   function removeFooter() {
-    removeElement(itemsContainer);
-    removeElement(footerContainer);
-    collectionOfDoneDoings = [];
+    itemsContainer.classList.add('hidden');
+    footerContainer.classList.add('hidden');
+    doneDoings = [];
     itemsArray = [];
     numberOfUndoneDoings = 0;
   }
 
-  function addColorButtonSelection(button) {
-    button.classList.add('selectedButton');
-  }
-
-  function removeColorButtonSelection(button) {
-    button.classList.remove('selectedButton');
-  }
-
   // если кнопка не выделена, у других кнопок выделение удаляем, этой добавляем
   function buttonIllumination(button) {
-    if (!button.classList.contains('selectedButton')) {
+    if (!button.classList.contains('footerContainer__Buttons_selected')) {
       ButtonsOfFooter.forEach(function(item, i, arr) {
-        removeColorButtonSelection(item);
+        item.classList.remove('footerContainer__Buttons_selected');
       });
-      addColorButtonSelection(button);
+      button.classList.add('footerContainer__Buttons_selected');
     }
   }
 
   function showAllList() {
-    itemsArray.forEach(function(item, i, arr) {
-      show(item);
+    itemsArray.forEach(function(item) {
+      item.classList.remove('hidden');
     })
   }
 
   // чтобы показать несделанные дела, прячем все сделанные
   function showActiveList() {
     showAllList();
-    collectionOfDoneDoings.forEach(function(item, i, arr) {
-      hide(item);
+    doneDoings.forEach(function(item) {
+      item.classList.add('hidden');
     })
   }
 
   function showCompletedList() {
-    itemsArray.forEach(function(item, i, arr) {
-      if (findSmthInArray(collectionOfDoneDoings,item)) {
-        show(item);
+    itemsArray.forEach(function(item) {
+      if (doneDoings.indexOf(item) !== -1) {
+        item.classList.remove('hidden');
       } else {
-        hide(item);
+        item.classList.add('hidden');
       }
     })
   }
 
   function deleteCompletedDoings() {
+    if (!doneDoings || doneDoings == []) return;
 
-    if (!collectionOfDoneDoings || collectionOfDoneDoings == []) return;
-
-    collectionOfDoneDoings.forEach(function(item, i, arr) {
-      removeElement(item);
+    doneDoings.forEach(function(item) {
+      item.remove();
       removeDoingsFromItemsArray(item);
-      collectionOfDoneDoings = [];
+      doneDoings = [];
     });
 
-    if (itemsArray.length ==0) {
+    if (itemsArray.length == 0) {
+      itemsContainer.classList.add('hidden');
       removeFooter();
     }
   }
 
-  // Функции: 1-я скрывает дело (в массиве itemsArray  оно остается),
-  // 2-я показывает скрытое дело
-  function hide(item) {
-    item.classList.add('hidden');
-  }
-
-  function show(item) {
-    item.classList.remove('hidden');
-  }
-
   function markAllDoings() {
     //если  все дела с галочками  -  удалить все галочки
-    if (collectionOfDoneDoings.length == itemsArray.length) {
+    if (doneDoings.length == itemsArray.length) {
 
       for (let n = 0; n < itemsArray.length; n++) {
         checkbox = itemsArray[n].firstElementChild;
         checkbox.checked = false;
         checkbox.removeAttribute('data-check');
-        removeDoingsFromCollectionOfDoneDoings(checkbox.parentElement);
+        removeFromDoneDoings(checkbox.parentElement);
         calculateNumberOfUndoneDoings();
-        changeInner(noteWithNumberOfUndoneDoings, 'В планах у кота '
-            + numberOfUndoneDoings);
-        updateCurrentList(pressedButton.innerHTML);
+        noteWithNumberOfUndoneDoings.innerHTML =
+            'В планах у кота ' + numberOfUndoneDoings;
+        updateCurrentList(pressedButton.getAttribute('data-name'));
       }
       //если галочек нет или не все дела с галочками  -  добавить везде галочки
     } else {
-
       for (let n = 0; n < itemsArray.length; n++) {
         checkbox = itemsArray[n].firstElementChild;
 
         if (!checkbox.hasAttribute('data-check')) {
           checkbox.checked = true;
           checkbox.setAttribute('data-check', 'checked');
-          addDoingsToCollectionOfDoneDoings(checkbox.parentElement);
+          addToDoneDoings(checkbox.parentElement);
           calculateNumberOfUndoneDoings();
-          changeInner(noteWithNumberOfUndoneDoings, 'В планах у кота '
-              + numberOfUndoneDoings);
-          updateCurrentList(pressedButton.innerHTML);
+          noteWithNumberOfUndoneDoings.innerHTML =
+              'В планах у кота ' + numberOfUndoneDoings;
+          updateCurrentList(pressedButton.getAttribute('data-name'));
         }
       }
     }
   }
-
 }
 
-let affairs = new Affairs ({
-  elem: document.querySelector('.list__main')
+window.onload = function(){affairs({
+  elem: document.querySelector('.main')
 });
+};

@@ -3,24 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <title>To do list</title>
-  <link rel="stylesheet" href="To_do_list_CSS.css" type="text/css"/>
+  <link rel="stylesheet" href="style.css" type="text/css"/>
 </head>
 <body>
 <div class="list">
 
-  <header class="list__header">
-    <img src="https://4tololo.ru/files/styles/large/public/images/20182807105210.jpg" alt="Шикарные облака" class="list__header__image">
-    <div class="list__header__title">todos</div>
+  <header class="header">
+    <img src="https://4tololo.ru/files/styles/large/public/images/20182807105210.jpg"
+         alt="Котик, кусающий хозяина за лапку"
+         class="header__image">
+    <div class="header__title">todos</div>
   </header>
 
-  <main class="list__main">
-    <input type="text" class="list__main__input" id="input" >
-    <div class="list__main__placeholder"> Кошачьи дела</div>
-    <img src="https://avatanplus.com/files/resources/mid/586c0179271d215965e5c148.png" class="list__main__add">
-    <img src = "https://99px.ru/sstorage/86/2018/09/image_862509181204218312105.gif" class="list__main__checkAll">
+  <main class="main">
+    <input type="text" class="main__input" id="input" placeholder="Кошачьи дела">
+    <img src="https://avatanplus.com/files/resources/mid/586c0179271d215965e5c148.png" class="main__add">
+    <img src="https://99px.ru/sstorage/86/2018/09/image_862509181204218312105.gif" class="main__checkAll">
+    <div class = 'itemsContainer hidden'></div>
+    <div class = 'footerContainer hidden'>
+      <p class = 'footerContainer__content'></p>
+      <button class = 'footerContainer__Buttons footerContainer__Buttons_selected' data-name = 'All'>All</button>
+      <button class = 'footerContainer__Buttons' data-name = 'Active'>Active</button>
+      <button class = 'footerContainer__Buttons' data-name = 'Completed'>Completed</button>
+      <button class = 'footerContainer__Buttons' data-name = 'ClearCompleted'>Clear Completed</button>
+    </div>
   </main>
 
 </div>
-<script src="script.js"></script>
+<script src= script.js></script>
 </body>
 </html>
